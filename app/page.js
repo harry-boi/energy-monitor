@@ -54,11 +54,15 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
-  // Live clock: re-render every 30 seconds so the balance visibly depletes,
-  // and refresh the underlying data every minute (e.g. a switch flipped on
-  // the Appliances page in another tab).
+  // Live clock: re-render every second so the balance visibly depletes.
+  // Accuracy does not depend on this interval: the live figures are a pure
+  // function of the recorded switch timestamps and the current time, so a
+  // 1-second tick gives exactly the value a 30-second tick would give at
+  // the same moment, just sooner. The tick is pure arithmetic on data
+  // already loaded; the database is only re-read on the slower refresh
+  // below (e.g. a switch flipped on the Appliances page in another tab).
   useEffect(() => {
-    const tick = setInterval(() => setNowMs(Date.now()), 30000);
+    const tick = setInterval(() => setNowMs(Date.now()), 1000);
     const refresh = setInterval(() => loadDashboardData(true), 60000);
     return () => {
       clearInterval(tick);
@@ -289,7 +293,7 @@ export default function Dashboard() {
             <BatteryCharging className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-3xl font-extrabold text-slate-900">
-            {liveBalance.toFixed(2)} <span className="text-lg font-semibold text-slate-600">kWh</span>
+            {liveBalance.toFixed(3)} <span className="text-lg font-semibold text-slate-600">kWh</span>
           </div>
           <div className="text-xs text-slate-500 mt-2 space-y-0.5">
             <div>
@@ -297,7 +301,11 @@ export default function Dashboard() {
             </div>
             <div className="font-medium text-slate-600">
               {ttd.hoursRemaining !== null
-                ? `Runs out in about ${ttd.hoursRemaining} hrs at this rate (by ${ttdTimeLabel})`
+                ? `Runs out in about ${
+                    ttd.hoursRemaining >= 24
+                      ? `${(ttd.hoursRemaining / 24).toFixed(1)} days`
+                      : `${Math.floor(ttd.hoursRemaining)}h ${Math.round((ttd.hoursRemaining % 1) * 60)}m`
+                  } at this rate (by ${ttdTimeLabel})`
                 : 'Not depleting right now, every appliance is OFF'}
             </div>
           </div>
