@@ -7,6 +7,7 @@ import {
   getRecharges,
   getMeterReadings,
   getSettings,
+  getStateEvents,
 } from '../lib/dataService.js';
 import {
   estimateBalance,
@@ -19,6 +20,9 @@ import {
   alertStatus,
   formatDuration,
   formatNaira,
+  estimateLiveConsumption,
+  estimateLiveBalance,
+  estimateTimeToDepletion,
 } from '../lib/calculations.js';
 import {
   AlertTriangle,
@@ -48,16 +52,30 @@ import Link from 'next/link';
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  // Live clock: re-render every 30 seconds so the balance visibly depletes,
+  // and refresh the underlying data every minute (e.g. a switch flipped on
+  // the Appliances page in another tab).
+  useEffect(() => {
+    const tick = setInterval(() => setNowMs(Date.now()), 30000);
+    const refresh = setInterval(() => loadDashboardData(true), 60000);
+    return () => {
+      clearInterval(tick);
+      clearInterval(refresh);
+    };
+  }, []);
+
+  const loadDashboardData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const [appliances, usageRecords, recharges, meterReadings, settings] = await Promise.all([
+      const [appliances, usageRecords, recharges, meterReadings, settings, stateEvents] = await Promise.all([
         getAppliances(),
         getUsageRecords(),
         getRecharges(),
         getMeterReadings(),
         getSettings(),
+        getStateEvents(),
       ]);
 
       const latestMeterReading = meterReadings.length > 0 ? meterReadings[0] : null;
@@ -65,6 +83,18 @@ export default function Dashboard() {
 
       // 1. Estimated Balance (Eq 3.4)
       const balResult = estimateBalance(recharges, usageRecords, latestMeterReading);
+
+      // 1b. Live base balance: Eq 3.4 over records dated BEFORE today.
+      // Today's consumption is tracked live from appliance state events,
+      // so today's manual usage records (if any) are excluded here to
+      // avoid counting the same energy twice.
+      const nowD = new Date();
+      const todayStr = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, '0')}-${String(
+        nowD.getDate()
+      ).padStart(2, '0')}`;
+      const todayStartMs = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate()).getTime();
+      const usageBeforeToday = usageRecords.filter((u) => !u.usage_date || u.usage_date < todayStr);
+      const baseBalResult = estimateBalance(recharges, usageBeforeToday, latestMeterReading);
 
       // 2. Estimated Load of ON appliances (Eq 3.3)
       const loadKw = estimateLoad(appliances);
@@ -114,6 +144,10 @@ export default function Dashboard() {
         latestRecharge,
         balance: balResult.balance,
         balanceDate: balResult.asAtDate,
+        baseBalance: baseBalResult.balance,
+        stateEvents,
+        todayStartMs,
+        todayStr,
         loadKw,
         onAppliancesCount,
         averageEnergy: avgResult.average,
@@ -128,7 +162,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Failed to load dashboard:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -156,6 +190,29 @@ export default function Dashboard() {
 
   if (!data) return null;
 
+  // Live figures, recomputed on every tick from the appliance switching
+  // history: how much has been consumed today so far, the balance left
+  // right now, and how long it lasts at the current load.
+  const liveConsumption = estimateLiveConsumption(
+    data.appliances,
+    data.stateEvents,
+    data.todayStartMs,
+    nowMs
+  );
+  const liveBalance = estimateLiveBalance(data.baseBalance, liveConsumption.totalKwh);
+  const liveDuration = estimateDuration(liveBalance, data.averageEnergy);
+  const liveStatus = alertStatus(liveBalance, liveDuration, data.settings?.alert_days || 3);
+  const liveDepletionDate = projectDepletionDate(data.todayStr, liveDuration);
+  const ttd = estimateTimeToDepletion(liveBalance, data.loadKw, nowMs);
+  const ttdTimeLabel = ttd.depletionTimestamp
+    ? new Date(ttd.depletionTimestamp).toLocaleString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+
   return (
     <div className="space-y-6">
       {/* Page Title & Scope Alert */}
@@ -180,17 +237,17 @@ export default function Dashboard() {
       {/* 1. Alert Status Banner (Matching Figure 3.12 & Table 3.8) */}
       <div
         className={`rounded-xl border p-4 shadow-sm flex items-start space-x-3.5 transition ${
-          data.status === 'Critical'
+          liveStatus === 'Critical'
             ? 'bg-red-50 border-red-300 text-red-900'
-            : data.status === 'Low'
+            : liveStatus === 'Low'
             ? 'bg-amber-50 border-amber-300 text-amber-900'
             : 'bg-emerald-50 border-emerald-300 text-emerald-900'
         }`}
       >
         <div className="flex-shrink-0 mt-0.5">
-          {data.status === 'Critical' ? (
+          {liveStatus === 'Critical' ? (
             <AlertOctagon className="h-6 w-6 text-red-600 animate-pulse" />
-          ) : data.status === 'Low' ? (
+          ) : liveStatus === 'Low' ? (
             <AlertTriangle className="h-6 w-6 text-amber-600" />
           ) : (
             <CheckCircle className="h-6 w-6 text-emerald-600" />
@@ -198,19 +255,19 @@ export default function Dashboard() {
         </div>
         <div className="flex-1">
           <div className="font-bold text-sm tracking-wide uppercase">
-            Alert status: {data.status}
+            Alert status: {liveStatus}
           </div>
           <p className="text-xs mt-0.5 font-medium">
-            {data.status === 'Critical' &&
+            {liveStatus === 'Critical' &&
               (data.balance <= 0
                 ? 'Warning: The energy balance has depleted (0 kWh). Recharge immediately!'
                 : 'Warning: Remaining energy is projected to last 1 day or less. Critical depletion imminent!')}
-            {data.status === 'Low' &&
+            {liveStatus === 'Low' &&
               `Warning: Energy is projected to last ${data.settings?.alert_days || 3} days or less (${data.duration.toFixed(
                 1
               )} days remaining). A recharge should be bought soon.`}
-            {data.status === 'Normal' &&
-              `The energy is expected to last longer than ${data.settings?.alert_days || 3} days (${data.duration.toFixed(
+            {liveStatus === 'Normal' &&
+              `The energy is expected to last longer than ${data.settings?.alert_days || 3} days (${liveDuration.toFixed(
                 1
               )} days remaining). No immediate recharge action is required.`}
           </p>
@@ -219,17 +276,30 @@ export default function Dashboard() {
 
       {/* 2. Six Output Metric Cards (Matching Figure 3.12) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Card 1: Estimated Balance */}
+        {/* Card 1: Live Balance (depletes in real time from appliance states) */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Estimated balance</span>
+            <span className="text-xs font-semibold uppercase tracking-wider flex items-center space-x-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Live balance</span>
+            </span>
             <BatteryCharging className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-3xl font-extrabold text-slate-900">
-            {data.balance.toFixed(1)} <span className="text-lg font-semibold text-slate-600">kWh</span>
+            {liveBalance.toFixed(2)} <span className="text-lg font-semibold text-slate-600">kWh</span>
           </div>
-          <div className="text-xs text-slate-500 mt-2 flex items-center space-x-1">
-            <span>as at {formatDateDisplay(data.balanceDate)}</span>
+          <div className="text-xs text-slate-500 mt-2 space-y-0.5">
+            <div>
+              {liveConsumption.totalKwh.toFixed(2)} kWh used today so far · burning {data.loadKw.toFixed(2)} kW now
+            </div>
+            <div className="font-medium text-slate-600">
+              {ttd.hoursRemaining !== null
+                ? `Runs out in about ${ttd.hoursRemaining} hrs at this rate (by ${ttdTimeLabel})`
+                : 'Not depleting right now, every appliance is OFF'}
+            </div>
           </div>
         </div>
 
@@ -256,7 +326,7 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="text-3xl font-extrabold text-slate-900">
-            {formatDuration(data.duration)}
+            {formatDuration(liveDuration)}
           </div>
           <div className="text-xs text-slate-500 mt-2">
             to projected depletion
@@ -270,7 +340,7 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-purple-500" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-1">
-            {formatDateDisplay(data.depletionDate)}
+            {formatDateDisplay(liveDepletionDate)}
           </div>
           <div className="text-xs text-slate-500 mt-2">
             based on average of {data.averageEnergy.toFixed(2)} kWh/day

@@ -18,6 +18,10 @@ import {
   costPerKwh,
   estimatedDailyCost,
   alertStatus,
+  onHoursInWindow,
+  estimateLiveConsumption,
+  estimateLiveBalance,
+  estimateTimeToDepletion,
 } from '../lib/calculations.js';
 
 const sampleAppliances = [
@@ -39,7 +43,7 @@ const dailyHistory = [
 ];
 
 let passedCount = 0;
-let totalCount = 16;
+let totalCount = 21;
 const results = [];
 
 function assert(testNo, name, expected, actual, condition) {
@@ -197,6 +201,77 @@ assert(
   'Duration 5.10 days; depletion 2026-10-26',
   `Duration ${t16_dur.toFixed(2)} days; depletion ${t16_depletion}`,
   Math.abs(t16_dur - 5.10) <= 0.01 && t16_depletion === '2026-10-26'
+);
+
+// ------------------------------------------------------------------
+// Live tracking tests (state events -> ON hours -> live balance)
+// Window: 2026-10-21 00:00 to 12:00 local (12 hours)
+// ------------------------------------------------------------------
+const dayStart = new Date('2026-10-21T00:00:00').getTime();
+const noon = new Date('2026-10-21T12:00:00').getTime();
+const at = (h) => new Date(dayStart + h * 3600000).toISOString();
+
+// Test 17: No events, appliance currently ON -> ON for the whole window
+const t17 = onHoursInWindow([], 'ON', dayStart, noon);
+assert(17, 'Live ON hours, no events, currently ON', '12 hrs', `${t17} hrs`, t17 === 12);
+
+// Test 18: ON since the previous evening, switched OFF at 06:00 -> 6 ON hours
+const t18 = onHoursInWindow(
+  [
+    { state: 'ON', changed_at: at(-4) },
+    { state: 'OFF', changed_at: at(6) },
+  ],
+  'OFF',
+  dayStart,
+  noon
+);
+assert(18, 'Live ON hours, switched OFF at 06:00', '6 hrs', `${t18} hrs`, t18 === 6);
+
+// Test 19: OFF at 06:00, back ON at 09:00 -> 6 + 3 = 9 ON hours
+const t19 = onHoursInWindow(
+  [
+    { state: 'OFF', changed_at: at(6) },
+    { state: 'ON', changed_at: at(9) },
+  ],
+  'ON',
+  dayStart,
+  noon
+);
+assert(19, 'Live ON hours, OFF 06:00-09:00', '9 hrs', `${t19} hrs`, t19 === 9);
+
+// Test 20: Live consumption + live balance.
+// Fan 75W x 10 ON all 12 hrs = 9 kWh; Iron 1000W x 2 OFF at 06:00 = 12 kWh; total 21 kWh.
+// Balance at start of day 90 -> live balance 69.
+const liveApps = [
+  { id: 'a1', power_watts: 75, quantity: 10, state: 'ON' },
+  { id: 'a2', power_watts: 1000, quantity: 2, state: 'OFF' },
+];
+// Iron was switched ON the previous evening (at(-4) = 20:00 yesterday)
+// and OFF at 06:00 today, exactly the history the events table will hold.
+const liveEvents = [
+  { appliance_id: 'a2', state: 'ON', changed_at: at(-4) },
+  { appliance_id: 'a2', state: 'OFF', changed_at: at(6) },
+];
+const live = estimateLiveConsumption(liveApps, liveEvents, dayStart, noon);
+const liveBal = estimateLiveBalance(90, live.totalKwh);
+assert(
+  20,
+  'Live consumption and live balance',
+  'Total 21 kWh; live balance 69 kWh',
+  `Total ${live.totalKwh} kWh; live balance ${liveBal} kWh`,
+  live.totalKwh === 21 && liveBal === 69
+);
+
+// Test 21: Time to depletion at current load.
+// Load = fan only = 0.75 kW; 69 / 0.75 = 92 hrs. Nothing ON -> nulls.
+const ttd = estimateTimeToDepletion(69, 0.75, noon);
+const ttdOff = estimateTimeToDepletion(69, 0, noon);
+assert(
+  21,
+  'Live time to depletion',
+  '92 hrs at 0.75 kW; null when nothing is ON',
+  `${ttd.hoursRemaining} hrs; null-case hours=${ttdOff.hoursRemaining}`,
+  ttd.hoursRemaining === 92 && ttdOff.hoursRemaining === null && ttdOff.depletionTimestamp === null
 );
 
 console.log('===============================================================');

@@ -7,10 +7,12 @@ import {
   saveDailyUsage,
   deleteDailyUsage,
   getDataMode,
+  getStateEvents,
 } from '../../lib/dataService.js';
 import {
   estimateApplianceEnergy,
   estimateDailyEnergy,
+  onHoursInWindow,
 } from '../../lib/calculations.js';
 import {
   Calendar,
@@ -28,6 +30,7 @@ export default function DailyUsagePage() {
   const todayStr = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState('2026-10-14');
   const [hasExistingRecords, setHasExistingRecords] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
   const [hoursMap, setHoursMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,15 +57,39 @@ export default function DailyUsagePage() {
 
       if (records && records.length > 0) {
         setHasExistingRecords(true);
+        setAutoFilled(false);
         records.forEach((r) => {
           newHoursMap[r.appliance_id] = r.hours;
         });
       } else {
         setHasExistingRecords(false);
-        // If no records exist, default to estimated daily hours for ON appliances
-        apps.forEach((a) => {
-          newHoursMap[a.id] = (a.state || 'ON') === 'ON' ? a.daily_hours : 0;
-        });
+        // No records yet for this date: first try the appliance switching
+        // history (live tracking). The hours each appliance actually spent
+        // ON that day are derived automatically from its state events.
+        let usedAuto = false;
+        try {
+          const events = await getStateEvents();
+          if (events && events.length > 0) {
+            const dayStart = new Date(`${date}T00:00:00`).getTime();
+            const dayEnd = Math.min(dayStart + 24 * 3600 * 1000, Date.now());
+            if (dayEnd > dayStart) {
+              apps.forEach((a) => {
+                const own = events.filter((e) => e.appliance_id === a.id);
+                newHoursMap[a.id] = Number(onHoursInWindow(own, a.state, dayStart, dayEnd).toFixed(2));
+              });
+              usedAuto = true;
+            }
+          }
+        } catch (e) {
+          usedAuto = false;
+        }
+        setAutoFilled(usedAuto);
+        if (!usedAuto) {
+          // Fallback: estimated daily hours for ON appliances
+          apps.forEach((a) => {
+            newHoursMap[a.id] = (a.state || 'ON') === 'ON' ? a.daily_hours : 0;
+          });
+        }
       }
       setHoursMap(newHoursMap);
     } catch (err) {
@@ -148,6 +175,15 @@ export default function DailyUsagePage() {
         <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded text-emerald-800 text-xs flex items-center space-x-2">
           <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600" />
           <span>{success}</span>
+        </div>
+      )}
+      {autoFilled && !hasExistingRecords && (
+        <div className="bg-sky-50 border-l-4 border-sky-500 p-3.5 rounded text-sky-800 text-xs flex items-center space-x-2">
+          <Clock className="h-4 w-4 flex-shrink-0 text-sky-600" />
+          <span>
+            Hours below were filled automatically from this day's appliance switching history (live
+            tracking). Adjust anything that looks wrong, then save to keep them as the day's record.
+          </span>
         </div>
       )}
 
