@@ -79,6 +79,22 @@ where not exists (
   select 1 from appliance_state_events e where e.appliance_id = a.id
 );
 
+-- 7. ROOMS TABLE
+-- The rooms of the residence. Each appliance in the register may be
+-- assigned to the room where it is used, so consumption can be broken
+-- down per room as well as for the residence as a whole. An appliance
+-- with no room is treated as unassigned; deleting a room returns its
+-- appliances to unassigned (ON DELETE SET NULL) rather than deleting them.
+create table if not exists rooms (
+  id   uuid primary key default gen_random_uuid(),
+  name text not null unique
+);
+
+alter table appliances
+  add column if not exists room_id uuid references rooms(id) on delete set null;
+
+create index if not exists idx_appliances_room_id on appliances (room_id);
+
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- Allows authorized web app clients (both authenticated caretaker and anon key)
@@ -86,6 +102,7 @@ where not exists (
 -- ==============================================================================
 
 alter table appliances     enable row level security;
+alter table rooms          enable row level security;
 alter table usage_records  enable row level security;
 alter table recharges      enable row level security;
 alter table meter_readings enable row level security;
@@ -94,6 +111,7 @@ alter table appliance_state_events enable row level security;
 
 -- Drop previous policies if re-running
 drop policy if exists "signed-in only" on appliances;
+drop policy if exists "signed-in only" on rooms;
 drop policy if exists "signed-in only" on usage_records;
 drop policy if exists "signed-in only" on recharges;
 drop policy if exists "signed-in only" on meter_readings;
@@ -101,6 +119,7 @@ drop policy if exists "signed-in only" on settings;
 drop policy if exists "signed-in only" on appliance_state_events;
 
 drop policy if exists "permit all" on appliances;
+drop policy if exists "permit all" on rooms;
 drop policy if exists "permit all" on usage_records;
 drop policy if exists "permit all" on recharges;
 drop policy if exists "permit all" on meter_readings;
@@ -108,6 +127,7 @@ drop policy if exists "permit all" on settings;
 drop policy if exists "permit all" on appliance_state_events;
 
 create policy "permit all" on appliances     for all using (true) with check (true);
+create policy "permit all" on rooms          for all using (true) with check (true);
 create policy "permit all" on usage_records  for all using (true) with check (true);
 create policy "permit all" on recharges      for all using (true) with check (true);
 create policy "permit all" on meter_readings for all using (true) with check (true);

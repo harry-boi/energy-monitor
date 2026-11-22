@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import {
   getUsageRecords,
   getAppliances,
+  getRooms,
 } from '../../lib/dataService.js';
 import {
   applianceShare,
   periodChange,
+  roomConsumptionBreakdown,
 } from '../../lib/calculations.js';
 import {
   BarChart,
@@ -39,9 +41,10 @@ export default function AnalysisPage() {
   const calculateAnalysis = async () => {
     setLoading(true);
     try {
-      const [allUsage, appliances] = await Promise.all([
+      const [allUsage, appliances, rooms] = await Promise.all([
         getUsageRecords(),
         getAppliances(),
+        getRooms(),
       ]);
 
       // 1. Filter usage in current period
@@ -108,7 +111,7 @@ export default function AnalysisPage() {
       // 4. Per-appliance share
       const appMap = {};
       appliances.forEach((a) => {
-        appMap[a.id] = { name: a.name, category: a.category, energy: 0 };
+        appMap[a.id] = { name: a.name, category: a.category, room_id: a.room_id || null, energy: 0 };
       });
       currentUsage.forEach((u) => {
         if (appMap[u.appliance_id]) {
@@ -125,6 +128,14 @@ export default function AnalysisPage() {
         }))
         .sort((a, b) => b.energy - a.energy);
 
+      // 5. Per-room share: the same recorded energies, grouped by the room
+      // each appliance is assigned to.
+      const energyByApplianceId = {};
+      Object.keys(appMap).forEach((id) => {
+        energyByApplianceId[id] = appMap[id].energy;
+      });
+      const roomShares = roomConsumptionBreakdown(appliances, rooms, energyByApplianceId);
+
       setAnalysisData({
         currentTotal,
         dailyAverage,
@@ -135,6 +146,8 @@ export default function AnalysisPage() {
         changePct,
         chartData,
         applianceShares,
+        roomShares,
+        hasRooms: rooms.length > 0,
       });
     } catch (err) {
       console.error(err);
@@ -352,6 +365,97 @@ export default function AnalysisPage() {
               </table>
             </div>
           </div>
+
+          {/* Share by Room (chart + table) */}
+          {analysisData.hasRooms && (
+            <>
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                  Consumption by room (kWh), {formatDateLabel(fromDate)} to {formatDateLabel(toDate)}
+                </h2>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={analysisData.roomShares.map((r) => ({
+                        room: r.room_name,
+                        energy: Number(r.energy_kwh.toFixed(1)),
+                      }))}
+                      margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="room"
+                        tickLine={false}
+                        axisLine={{ stroke: '#cbd5e1' }}
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={{ stroke: '#cbd5e1' }}
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        unit=" kWh"
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg">
+                                <p className="font-semibold">{payload[0].payload.room}</p>
+                                <p className="text-amber-400 font-bold mt-1">
+                                  {payload[0].value} kWh
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="energy" fill="#f59e0b" radius={[4, 4, 0, 0]}>
+                        <LabelList
+                          dataKey="energy"
+                          position="top"
+                          style={{ fill: '#475569', fontSize: 11, fontWeight: 600 }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-200">
+                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    Share by room, {formatDateLabel(fromDate)} to {formatDateLabel(toDate)}
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold">
+                      <tr>
+                        <th className="py-3 px-4">Room</th>
+                        <th className="py-3 px-4">Appliances</th>
+                        <th className="py-3 px-4">Energy (kWh)</th>
+                        <th className="py-3 px-4 text-right">Share (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                      {analysisData.roomShares.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50 transition">
+                          <td className="py-3 px-4 font-semibold text-slate-900">{item.room_name}</td>
+                          <td className="py-3 px-4 text-slate-500">{item.appliance_count}</td>
+                          <td className="py-3 px-4 font-medium">{item.energy_kwh.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right font-bold text-slate-900">
+                            {item.share.toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

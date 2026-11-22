@@ -6,6 +6,9 @@ import {
   saveAppliance,
   updateApplianceState,
   deleteAppliance,
+  getRooms,
+  saveRoom,
+  deleteRoom,
 } from '../../lib/dataService.js';
 import {
   estimateApplianceEnergy,
@@ -23,10 +26,13 @@ import {
   Zap,
   Power,
   Layers,
+  DoorOpen,
 } from 'lucide-react';
 
 export default function AppliancesPage() {
   const [appliances, setAppliances] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [newRoomName, setNewRoomName] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -41,12 +47,14 @@ export default function AppliancesPage() {
     quantity: 1,
     daily_hours: 8,
     state: 'ON',
+    room_id: '',
   });
 
   const loadData = async () => {
     try {
-      const list = await getAppliances();
+      const [list, roomList] = await Promise.all([getAppliances(), getRooms()]);
       setAppliances(list);
+      setRooms(roomList);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -66,6 +74,7 @@ export default function AppliancesPage() {
       quantity: 1,
       daily_hours: 8,
       state: 'ON',
+      room_id: '',
     });
     setEditingId(null);
     setError('');
@@ -85,6 +94,7 @@ export default function AppliancesPage() {
       quantity: app.quantity,
       daily_hours: app.daily_hours,
       state: app.state || 'ON',
+      room_id: app.room_id || '',
     });
     setError('');
     setShowModal(true);
@@ -146,6 +156,44 @@ export default function AppliancesPage() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleAddRoom = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await saveRoom({ name: newRoomName });
+      setSuccess(`Room "${newRoomName.trim()}" added successfully.`);
+      setTimeout(() => setSuccess(''), 4000);
+      setNewRoomName('');
+      await loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteRoom = async (room) => {
+    const count = appliances.filter((a) => a.room_id === room.id).length;
+    const note =
+      count > 0
+        ? `\n\n${count} appliance(s) assigned to this room will become unassigned. They will not be deleted.`
+        : '';
+    if (!confirm(`Delete room "${room.name}"?${note}`)) return;
+    setError('');
+    try {
+      await deleteRoom(room.id);
+      setSuccess(`Room "${room.name}" deleted.`);
+      setTimeout(() => setSuccess(''), 4000);
+      await loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const roomNameFor = (roomId) => {
+    if (!roomId) return 'Unassigned';
+    const room = rooms.find((r) => r.id === roomId);
+    return room ? room.name : 'Unassigned';
   };
 
   // Live Calculations
@@ -238,6 +286,67 @@ export default function AppliancesPage() {
         </div>
       </div>
 
+      {/* Rooms Management */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+            <DoorOpen className="h-4 w-4 text-slate-500" />
+            <span>Rooms ({rooms.length})</span>
+          </h2>
+          <span className="text-xs text-slate-400">
+            Assign appliances to rooms to see consumption per room
+          </span>
+        </div>
+        <div className="p-4 space-y-3">
+          {rooms.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              No rooms added yet. Add the rooms of the residence below, then assign each
+              appliance to the room where it is used.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {rooms.map((room) => {
+                const count = appliances.filter((a) => a.room_id === room.id).length;
+                return (
+                  <span
+                    key={room.id}
+                    className="inline-flex items-center space-x-2 pl-3 pr-1.5 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-900 text-xs font-medium"
+                  >
+                    <span>
+                      {room.name}
+                      <span className="text-sky-500 font-normal"> · {count} appliance{count === 1 ? '' : 's'}</span>
+                    </span>
+                    <button
+                      onClick={() => handleDeleteRoom(room)}
+                      className="p-1 text-sky-400 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                      title={`Delete room ${room.name}`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          <form onSubmit={handleAddRoom} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newRoomName}
+              onChange={(e) => setNewRoomName(e.target.value)}
+              placeholder="e.g. Room 1"
+              className="flex-1 max-w-xs p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center space-x-1.5 text-xs bg-slate-900 hover:bg-slate-700 text-white font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Room</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
       {/* Appliances Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
@@ -260,6 +369,7 @@ export default function AppliancesPage() {
                 <tr>
                   <th className="py-3 px-4">Appliance Name</th>
                   <th className="py-3 px-4">Category</th>
+                  <th className="py-3 px-4">Room</th>
                   <th className="py-3 px-4">Power Rating</th>
                   <th className="py-3 px-4">Qty</th>
                   <th className="py-3 px-4">Est. Daily Hours</th>
@@ -285,6 +395,11 @@ export default function AppliancesPage() {
                       <td className="py-3.5 px-4">
                         <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
                           {app.category}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-sky-50 text-sky-800 border border-sky-200">
+                          {roomNameFor(app.room_id)}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">{app.power_watts} W</td>
@@ -401,6 +516,27 @@ export default function AppliancesPage() {
                     <option value="OFF">OFF</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                  Room
+                </label>
+                <select
+                  value={formData.room_id}
+                  onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                >
+                  <option value="">Unassigned</option>
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  The room where this appliance is used. Rooms are managed on this page, above the appliance list.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
