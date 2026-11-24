@@ -30,7 +30,7 @@ export default function AuthGuard({ children }) {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300">
         <div className="flex items-center space-x-2 text-sm font-medium">
           <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
           <span>Verifying authorization...</span>

@@ -53,33 +53,33 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       {/* Page Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
           Alert Preferences & Settings
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Configure prediction averaging parameters and low-energy warning thresholds.
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-3.5 rounded text-red-700 text-xs flex items-center space-x-2">
+        <div className="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 p-3.5 rounded text-red-700 dark:text-red-300 text-xs flex items-center space-x-2">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded text-emerald-800 text-xs flex items-center space-x-2">
-          <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 p-3.5 rounded text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2">
+          <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Settings Form (Matching Figure 3.11) */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-5 text-xs">
           <div>
-            <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+            <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
               Recent days used for the average
             </label>
             <input
@@ -89,15 +89,15 @@ export default function SettingsPage() {
               required
               value={form.averaging_days}
               onChange={(e) => setForm({ ...form, averaging_days: Number(e.target.value) })}
-              className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
-            <span className="text-[11px] text-slate-400 mt-1 block">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
               Default is 7 days. Must be between 3 and 30 days.
             </span>
           </div>
 
           <div>
-            <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+            <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
               Warn when the recharge will last (days) or less
             </label>
             <input
@@ -107,9 +107,9 @@ export default function SettingsPage() {
               required
               value={form.alert_days}
               onChange={(e) => setForm({ ...form, alert_days: Number(e.target.value) })}
-              className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
-            <span className="text-[11px] text-slate-400 mt-1 block">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
               Default is 3 days. Triggers a LOW alert when projected recharge duration falls below this threshold. Must be between 2 and 14 days.
             </span>
           </div>

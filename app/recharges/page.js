@@ -161,37 +161,37 @@ export default function RechargesAndMeterPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
           Recharges & Meter Readings
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Record prepaid electricity token purchases and physical meter balance readings to reconcile estimates.
         </p>
       </div>
 
       {/* Global Alerts */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-3.5 rounded text-red-700 text-xs flex items-center space-x-2">
+        <div className="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 p-3.5 rounded text-red-700 dark:text-red-300 text-xs flex items-center space-x-2">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded text-emerald-800 text-xs flex items-center space-x-2">
-          <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 p-3.5 rounded text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2">
+          <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Tab Switcher */}
-      <div className="flex space-x-2 border-b border-slate-200">
+      <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={() => { setActiveTab('recharge'); setError(''); }}
           className={`flex items-center space-x-2 py-2.5 px-4 text-xs font-semibold border-b-2 transition ${
             activeTab === 'recharge'
-              ? 'border-amber-500 text-amber-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-amber-500 text-amber-700 dark:text-amber-300'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800'
           }`}
         >
           <CreditCard className="h-4 w-4" />
@@ -201,8 +201,8 @@ export default function RechargesAndMeterPage() {
           onClick={() => { setActiveTab('meter'); setError(''); }}
           className={`flex items-center space-x-2 py-2.5 px-4 text-xs font-semibold border-b-2 transition ${
             activeTab === 'meter'
-              ? 'border-amber-500 text-amber-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-amber-500 text-amber-700 dark:text-amber-300'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800'
           }`}
         >
           <Gauge className="h-4 w-4" />
@@ -214,15 +214,15 @@ export default function RechargesAndMeterPage() {
       {activeTab === 'recharge' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recharge Input Form */}
-          <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider flex items-center space-x-2">
               <CreditCard className="h-4 w-4 text-amber-500" />
               <span>New Recharge</span>
             </h2>
 
             <form onSubmit={handleSaveRecharge} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
                   Date
                 </label>
                 <input
@@ -230,12 +230,12 @@ export default function RechargesAndMeterPage() {
                   required
                   value={rechargeForm.recharge_date}
                   onChange={(e) => setRechargeForm({ ...rechargeForm, recharge_date: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
                   Amount paid (₦)
                 </label>
                 <input
@@ -246,12 +246,12 @@ export default function RechargesAndMeterPage() {
                   value={rechargeForm.amount_naira}
                   onChange={(e) => setRechargeForm({ ...rechargeForm, amount_naira: e.target.value })}
                   placeholder="e.g. 40000"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
                   Energy units received (kWh)
                 </label>
                 <input
@@ -262,13 +262,13 @@ export default function RechargesAndMeterPage() {
                   value={rechargeForm.units_kwh}
                   onChange={(e) => setRechargeForm({ ...rechargeForm, units_kwh: e.target.value })}
                   placeholder="e.g. 200"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium"
                 />
               </div>
 
               {/* Live Cost per kWh (Figure 3.9) */}
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-slate-800 text-xs italic">
-                Cost per kWh: <span className="font-bold text-slate-950 not-italic">{formatNaira(liveCostPerKwh)}</span>
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg text-slate-800 dark:text-slate-100 text-xs italic">
+                Cost per kWh: <span className="font-bold text-slate-950 dark:text-slate-50 not-italic">{formatNaira(liveCostPerKwh)}</span>
               </div>
 
               <button
@@ -281,22 +281,22 @@ export default function RechargesAndMeterPage() {
           </div>
 
           {/* Recharge History Table */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                <History className="h-4 w-4 text-slate-500" />
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider flex items-center space-x-2">
+                <History className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                 <span>Recharge History ({recharges.length})</span>
               </h2>
             </div>
 
             {recharges.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
+              <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                 No recharge purchases recorded yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Amount Paid</th>
@@ -305,17 +305,17 @@ export default function RechargesAndMeterPage() {
                       <th className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                     {recharges.map((rec) => {
                       const cost = costPerKwh(rec.amount_naira, rec.units_kwh);
                       return (
-                        <tr key={rec.id} className="hover:bg-slate-50 transition">
-                          <td className="py-3 px-4 font-semibold text-slate-900">
+                        <tr key={rec.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
                             {formatDate(rec.recharge_date)}
                           </td>
                           <td className="py-3 px-4">{formatNaira(rec.amount_naira)}</td>
                           <td className="py-3 px-4 font-medium">{rec.units_kwh} kWh</td>
-                          <td className="py-3 px-4 font-bold text-slate-900">
+                          <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-50">
                             {formatNaira(cost)}
                           </td>
                           <td className="py-3 px-4 text-right">
@@ -342,15 +342,15 @@ export default function RechargesAndMeterPage() {
       {activeTab === 'meter' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Meter Reading Form */}
-          <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-              <Gauge className="h-4 w-4 text-purple-600" />
+          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider flex items-center space-x-2">
+              <Gauge className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               <span>Record Meter Reading</span>
             </h2>
 
             <form onSubmit={handleSaveReading} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
                   Date
                 </label>
                 <input
@@ -358,12 +358,12 @@ export default function RechargesAndMeterPage() {
                   required
                   value={readingForm.reading_date}
                   onChange={(e) => setReadingForm({ ...readingForm, reading_date: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
                   Balance shown on the meter (kWh)
                 </label>
                 <input
@@ -374,20 +374,20 @@ export default function RechargesAndMeterPage() {
                   value={readingForm.balance_kwh}
                   onChange={(e) => setReadingForm({ ...readingForm, balance_kwh: e.target.value })}
                   placeholder="e.g. 90.0"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-semibold"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-semibold"
                 />
               </div>
 
               {/* Live Drift Displays (Figure 3.10) */}
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg space-y-1.5 text-xs">
-                <div className="text-slate-600 italic">
-                  Estimated balance: <span className="font-semibold text-slate-900 not-italic">{estBalResult.balance.toFixed(1)} kWh</span>
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg space-y-1.5 text-xs">
+                <div className="text-slate-600 dark:text-slate-300 italic">
+                  Estimated balance: <span className="font-semibold text-slate-900 dark:text-slate-50 not-italic">{estBalResult.balance.toFixed(1)} kWh</span>
                 </div>
-                <div className="text-slate-600 italic">
+                <div className="text-slate-600 dark:text-slate-300 italic">
                   Difference (meter less estimate):{' '}
                   <span
                     className={`font-bold not-italic ${
-                      liveDifference < 0 ? 'text-amber-600' : 'text-emerald-600'
+                      liveDifference < 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
                     }`}
                   >
                     {liveDifference > 0 ? `+${liveDifference.toFixed(1)}` : liveDifference.toFixed(1)} kWh
@@ -405,22 +405,22 @@ export default function RechargesAndMeterPage() {
           </div>
 
           {/* Meter Readings History Table */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                <History className="h-4 w-4 text-slate-500" />
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider flex items-center space-x-2">
+                <History className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                 <span>Recorded Meter Readings ({readings.length})</span>
               </h2>
             </div>
 
             {readings.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
+              <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                 No physical meter readings entered yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Meter Balance (kWh)</th>
@@ -429,20 +429,20 @@ export default function RechargesAndMeterPage() {
                       <th className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                     {readings.map((r) => {
                       const diff = calculateMeterDifference(r.balance_kwh, r.estimated_kwh);
                       return (
-                        <tr key={r.id} className="hover:bg-slate-50 transition">
-                          <td className="py-3 px-4 font-semibold text-slate-900">
+                        <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
                             {formatDate(r.reading_date)}
                           </td>
-                          <td className="py-3 px-4 font-bold text-slate-900">{r.balance_kwh} kWh</td>
-                          <td className="py-3 px-4 text-slate-600">{r.estimated_kwh} kWh</td>
+                          <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-50">{r.balance_kwh} kWh</td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{r.estimated_kwh} kWh</td>
                           <td className="py-3 px-4 font-semibold">
                             <span
                               className={
-                                diff < 0 ? 'text-amber-600' : diff > 0 ? 'text-emerald-600' : 'text-slate-600'
+                                diff < 0 ? 'text-amber-600 dark:text-amber-400' : diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'
                               }
                             >
                               {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)} kWh

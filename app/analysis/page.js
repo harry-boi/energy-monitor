@@ -170,62 +170,62 @@ export default function AnalysisPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
           Consumption Analysis
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Detailed historical electricity consumption trends, daily metrics, and appliance share breakdown.
         </p>
       </div>
 
       {/* Date Range Selector Form (Figure 3.13) */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700">From</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">From</label>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="p-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-amber-500 font-medium"
+            className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 font-medium"
           />
         </div>
 
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700">To</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">To</label>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="p-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-amber-500 font-medium"
+            className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-900 focus:ring-2 focus:ring-amber-500 font-medium"
           />
         </div>
       </div>
 
       {loading || !analysisData ? (
-        <div className="text-center py-12 text-slate-400 text-xs">
+        <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-xs">
           Computing consumption analysis...
         </div>
       ) : (
         <div className="space-y-6">
           {/* Summary Strip (Matching Figure 3.13) */}
-          <div className="bg-slate-900 text-white p-5 rounded-xl shadow-md grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
+          <div className="bg-slate-900 text-white p-5 rounded-xl shadow-md border border-slate-900 dark:border-slate-700 grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
             <div>
-              <span className="text-slate-400 block font-medium">Total:</span>
+              <span className="text-slate-400 dark:text-slate-500 block font-medium">Total:</span>
               <span className="text-xl font-extrabold text-amber-400">
                 {analysisData.currentTotal.toFixed(1)} kWh
               </span>
             </div>
 
             <div>
-              <span className="text-slate-400 block font-medium">Average per day:</span>
+              <span className="text-slate-400 dark:text-slate-500 block font-medium">Average per day:</span>
               <span className="text-lg font-bold text-white">
                 {analysisData.dailyAverage.toFixed(2)} kWh
               </span>
             </div>
 
             <div>
-              <span className="text-slate-400 block font-medium">Highest day:</span>
+              <span className="text-slate-400 dark:text-slate-500 block font-medium">Highest day:</span>
               <span className="text-sm font-semibold text-white">
                 {analysisData.highestDay
                   ? `${formatDateLabel(analysisData.highestDay.date)}, ${analysisData.highestDay.val.toFixed(1)} kWh`
@@ -234,7 +234,7 @@ export default function AnalysisPage() {
             </div>
 
             <div>
-              <span className="text-slate-400 block font-medium">Lowest day:</span>
+              <span className="text-slate-400 dark:text-slate-500 block font-medium">Lowest day:</span>
               <span className="text-sm font-semibold text-white">
                 {analysisData.lowestDay
                   ? `${formatDateLabel(analysisData.lowestDay.date)}, ${analysisData.lowestDay.val.toFixed(1)} kWh`
@@ -243,7 +243,7 @@ export default function AnalysisPage() {
             </div>
 
             <div>
-              <span className="text-slate-400 block font-medium">
+              <span className="text-slate-400 dark:text-slate-500 block font-medium">
                 Compared with previous {analysisData.daysCount} days:
               </span>
               <span
@@ -272,8 +272,8 @@ export default function AnalysisPage() {
           </div>
 
           {/* Daily Consumption Chart (Figure 3.13) */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider mb-4">
               Daily consumption (kWh)
             </h2>
             <div className="h-72 w-full">
@@ -334,15 +334,15 @@ export default function AnalysisPage() {
           </div>
 
           {/* Share by Appliance Table (Figure 3.13) */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-200">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider">
                 Share by appliance, {formatDateLabel(fromDate)} to {formatDateLabel(toDate)}
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 uppercase tracking-wider font-semibold">
                   <tr>
                     <th className="py-3 px-4">Appliance</th>
                     <th className="py-3 px-4">Category</th>
@@ -350,13 +350,13 @@ export default function AnalysisPage() {
                     <th className="py-3 px-4 text-right">Share (%)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                   {analysisData.applianceShares.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 transition">
-                      <td className="py-3 px-4 font-semibold text-slate-900">{item.name}</td>
-                      <td className="py-3 px-4 text-slate-500">{item.category}</td>
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                      <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">{item.name}</td>
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{item.category}</td>
                       <td className="py-3 px-4 font-medium">{item.energy.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900">
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-slate-50">
                         {item.share.toFixed(1)}%
                       </td>
                     </tr>
@@ -369,8 +369,8 @@ export default function AnalysisPage() {
           {/* Share by Room (chart + table) */}
           {analysisData.hasRooms && (
             <>
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider mb-4">
                   Consumption by room (kWh), {formatDateLabel(fromDate)} to {formatDateLabel(toDate)}
                 </h2>
                 <div className="h-64 w-full">
@@ -423,15 +423,15 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-200">
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider">
                     Share by room, {formatDateLabel(fromDate)} to {formatDateLabel(toDate)}
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold">
+                  <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 uppercase tracking-wider font-semibold">
                       <tr>
                         <th className="py-3 px-4">Room</th>
                         <th className="py-3 px-4">Appliances</th>
@@ -439,13 +439,13 @@ export default function AnalysisPage() {
                         <th className="py-3 px-4 text-right">Share (%)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                       {analysisData.roomShares.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 transition">
-                          <td className="py-3 px-4 font-semibold text-slate-900">{item.room_name}</td>
-                          <td className="py-3 px-4 text-slate-500">{item.appliance_count}</td>
+                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">{item.room_name}</td>
+                          <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{item.appliance_count}</td>
                           <td className="py-3 px-4 font-medium">{item.energy_kwh.toFixed(2)}</td>
-                          <td className="py-3 px-4 text-right font-bold text-slate-900">
+                          <td className="py-3 px-4 text-right font-bold text-slate-900 dark:text-slate-50">
                             {item.share.toFixed(1)}%
                           </td>
                         </tr>

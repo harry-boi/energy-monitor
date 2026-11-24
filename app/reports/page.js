@@ -108,19 +108,19 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header (Hidden when printing) */}
-      <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+      <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             Consumption and Recharge Report
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Official summary report for Goodness Lodge caretakers and lodge management.
           </p>
         </div>
 
         <button
           onClick={handlePrint}
-          className="inline-flex items-center space-x-2 text-xs bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg shadow-sm transition"
+          className="inline-flex items-center space-x-2 text-xs bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-lg shadow-sm transition"
         >
           <Printer className="h-4 w-4" />
           <span>Print / Save PDF</span>
@@ -128,48 +128,48 @@ export default function ReportsPage() {
       </div>
 
       {/* Date Range Selection (Hidden when printing) */}
-      <div className="print:hidden bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center gap-4">
+      <div className="print:hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700">From</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">From</label>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="p-2 border border-slate-300 rounded-lg text-xs bg-white font-medium focus:ring-2 focus:ring-amber-500"
+            className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-900 font-medium focus:ring-2 focus:ring-amber-500"
           />
         </div>
 
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700">To</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">To</label>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="p-2 border border-slate-300 rounded-lg text-xs bg-white font-medium focus:ring-2 focus:ring-amber-500"
+            className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-900 font-medium focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* Printable Report Document (Figure 3.14 Layout) */}
       {loading || !reportData ? (
-        <div className="text-center py-12 text-slate-400 text-xs">Generating report...</div>
+        <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-xs">Generating report...</div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 sm:p-12 shadow-sm print:border-none print:shadow-none print:p-0 max-w-4xl mx-auto space-y-6 text-slate-900 font-sans">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-12 shadow-sm print:border-none print:shadow-none print:p-0 max-w-4xl mx-auto space-y-6 text-slate-900 dark:text-slate-50 font-sans">
           {/* Header */}
-          <div className="text-center border-b border-slate-300 pb-5">
+          <div className="text-center border-b border-slate-300 dark:border-slate-600 pb-5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               Goodness Lodge, Ikot Ekpene
             </h1>
-            <h2 className="text-sm font-semibold text-slate-700 mt-1">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1">
               Consumption and Recharge Report: {formatDateDisplay(fromDate)} to {formatDateDisplay(toDate)}
             </h2>
-            <div className="text-[11px] text-slate-500 mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Generated on {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
           </div>
 
           {/* Key Summary Lines (Figure 3.14) */}
-          <div className="space-y-1.5 text-xs sm:text-sm text-slate-800 bg-slate-50 p-4 rounded-lg border border-slate-200 print:bg-transparent print:p-0 print:border-none">
+          <div className="space-y-1.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 print:bg-transparent print:p-0 print:border-none">
             <p>
               <strong className="font-semibold">Total estimated consumption:</strong>{' '}
               {reportData.totalConsumption.toFixed(1)} kWh
@@ -197,20 +197,20 @@ export default function ReportsPage() {
 
           {/* Section 1: Daily Consumption Table (Figure 3.14) */}
           <div className="space-y-2 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-50">
               Daily consumption
             </h3>
-            <table className="min-w-full border border-slate-300 text-xs divide-y divide-slate-300">
-              <thead className="bg-slate-100 font-bold text-slate-800">
+            <table className="min-w-full border border-slate-300 dark:border-slate-600 text-xs divide-y divide-slate-300">
+              <thead className="bg-slate-100 dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100">
                 <tr>
-                  <th className="py-2 px-3 text-left border-r border-slate-300">Date</th>
+                  <th className="py-2 px-3 text-left border-r border-slate-300 dark:border-slate-600">Date</th>
                   <th className="py-2 px-3 text-right">Estimated energy (kWh)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                 {reportData.dailyRows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50">
-                    <td className="py-2 px-3 border-r border-slate-200">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <td className="py-2 px-3 border-r border-slate-200 dark:border-slate-800">
                       {formatDateDisplay(row.date)}
                     </td>
                     <td className="py-2 px-3 text-right font-medium">
@@ -218,8 +218,8 @@ export default function ReportsPage() {
                     </td>
                   </tr>
                 ))}
-                <tr className="bg-slate-100 font-extrabold text-slate-950 border-t-2 border-slate-400">
-                  <td className="py-2 px-3 border-r border-slate-300">Total</td>
+                <tr className="bg-slate-100 dark:bg-slate-800 font-extrabold text-slate-950 dark:text-slate-50 border-t-2 border-slate-400 dark:border-slate-600">
+                  <td className="py-2 px-3 border-r border-slate-300 dark:border-slate-600">Total</td>
                   <td className="py-2 px-3 text-right">
                     {reportData.totalConsumption.toFixed(1)}
                   </td>
@@ -230,29 +230,29 @@ export default function ReportsPage() {
 
           {/* Section 2: Recharge History Table (Figure 3.14) */}
           <div className="space-y-2 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-50">
               Recharge history
             </h3>
             {reportData.periodRecharges.length === 0 ? (
-              <div className="text-xs text-slate-500 italic p-3 border border-slate-200 rounded">
+              <div className="text-xs text-slate-500 dark:text-slate-400 italic p-3 border border-slate-200 dark:border-slate-800 rounded">
                 No recharges recorded during this period.
               </div>
             ) : (
-              <table className="min-w-full border border-slate-300 text-xs divide-y divide-slate-300">
-                <thead className="bg-slate-100 font-bold text-slate-800">
+              <table className="min-w-full border border-slate-300 dark:border-slate-600 text-xs divide-y divide-slate-300">
+                <thead className="bg-slate-100 dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-100">
                   <tr>
-                    <th className="py-2 px-3 text-left border-r border-slate-300">Date</th>
-                    <th className="py-2 px-3 text-left border-r border-slate-300">Amount paid</th>
+                    <th className="py-2 px-3 text-left border-r border-slate-300 dark:border-slate-600">Date</th>
+                    <th className="py-2 px-3 text-left border-r border-slate-300 dark:border-slate-600">Amount paid</th>
                     <th className="py-2 px-3 text-right">Units received</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {reportData.periodRecharges.map((rec) => (
                     <tr key={rec.id}>
-                      <td className="py-2 px-3 border-r border-slate-200">
+                      <td className="py-2 px-3 border-r border-slate-200 dark:border-slate-800">
                         {formatDateDisplay(rec.recharge_date)}
                       </td>
-                      <td className="py-2 px-3 border-r border-slate-200">
+                      <td className="py-2 px-3 border-r border-slate-200 dark:border-slate-800">
                         {formatNaira(rec.amount_naira)}
                       </td>
                       <td className="py-2 px-3 text-right font-medium">
@@ -269,7 +269,7 @@ export default function ReportsPage() {
           <div className="print:hidden text-center pt-6">
             <button
               onClick={handlePrint}
-              className="py-2.5 px-8 bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-900 font-bold text-xs rounded-lg shadow-sm transition"
+              className="py-2.5 px-8 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-50 border-2 border-slate-900 font-bold text-xs rounded-lg shadow-sm transition"
             >
               Print
             </button>
