@@ -411,7 +411,7 @@ export default function AppliancesPage() {
                           title="Click to toggle state"
                           className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide transition ${
                             isOn
-                              ? 'bg-emerald-100 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 border border-emerald-300'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800'
                               : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 border border-slate-300 dark:border-slate-600'
                           }`}
                         >

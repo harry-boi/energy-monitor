@@ -242,10 +242,10 @@ export default function Dashboard() {
       <div
         className={`rounded-xl border p-4 shadow-sm flex items-start space-x-3.5 transition ${
           liveStatus === 'Critical'
-            ? 'bg-red-50 dark:bg-red-950/40 border-red-300 text-red-900'
+            ? 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-800 text-red-900 dark:text-red-200'
             : liveStatus === 'Low'
-            ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'
-            : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 text-emerald-900'
+            ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'
+            : 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
         }`}
       >
         <div className="flex-shrink-0 mt-0.5">
