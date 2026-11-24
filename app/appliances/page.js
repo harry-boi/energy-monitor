@@ -449,8 +449,9 @@ export default function AppliancesPage() {
 
       {/* Appliance Form Modal (Matching Figure 3.7) */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center sm:items-center sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 max-h-[92dvh] overflow-y-auto animate-slide-up">
+            <div className="sm:hidden mx-auto h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true" />
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-base font-bold text-slate-900">
                 {editingId ? 'Edit Appliance' : 'Add Appliance'}
