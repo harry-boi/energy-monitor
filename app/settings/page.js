@@ -2,17 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { getSettings, saveSettings } from '../../lib/dataService.js';
-import { Settings as SettingsIcon, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Save, CheckCircle, AlertCircle, Mail, Send } from 'lucide-react';
 
 export default function SettingsPage() {
   const [form, setForm] = useState({
     averaging_days: 7,
     alert_days: 3,
+    alert_email: '',
+    alerts_enabled: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [testMsg, setTestMsg] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -22,6 +26,8 @@ export default function SettingsPage() {
           setForm({
             averaging_days: s.averaging_days || 7,
             alert_days: s.alert_days || 3,
+            alert_email: s.alert_email || '',
+            alerts_enabled: Boolean(s.alerts_enabled),
           });
         }
       } catch (err) {
@@ -47,6 +53,38 @@ export default function SettingsPage() {
       setError(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestAlert = async () => {
+    setTestMsg('');
+    setError('');
+    setTesting(true);
+    try {
+      // Save first so the test goes to the address currently in the form.
+      await saveSettings(form);
+      const res = await fetch('/api/alerts/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ test: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Test alert failed.');
+      }
+      if (data.email && data.email.sent) {
+        setTestMsg(`Test alert sent to ${data.email.to}. Check that inbox.`);
+      } else if (data.email && data.email.dryRun) {
+        setTestMsg(
+          'Settings saved, but the mail server is not configured on the deployment yet (RESEND_API_KEY / ALERT_FROM_EMAIL), so no email actually went out.'
+        );
+      } else {
+        setTestMsg('Test request completed.');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -112,6 +150,60 @@ export default function SettingsPage() {
             <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
               Default is 3 days. Triggers a LOW alert when projected recharge duration falls below this threshold. Must be between 2 and 14 days.
             </span>
+          </div>
+
+          {/* Email Alerts */}
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-5 space-y-4">
+            <div className="flex items-center space-x-2">
+              <Mail className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <h2 className="font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                Email alerts
+              </h2>
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              The dashboard shows the alert status in the app. Email alerts also reach the
+              caretaker without opening the app: a scheduled check runs every day, and when the
+              projected depletion falls to Low or Critical, one email is sent for that episode.
+            </p>
+
+            <label className="flex items-center space-x-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.alerts_enabled}
+                onChange={(e) => setForm({ ...form, alerts_enabled: e.target.checked })}
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 accent-amber-500"
+              />
+              <span className="font-medium text-slate-700 dark:text-slate-200">Enable email alerts</span>
+            </label>
+
+            <div>
+              <label className="block font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1">
+                Caretaker email for alerts
+              </label>
+              <input
+                type="email"
+                placeholder="caretaker@example.com"
+                value={form.alert_email}
+                onChange={(e) => setForm({ ...form, alert_email: e.target.value })}
+                className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              />
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
+                Low and Critical alerts are sent to this address.
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={handleTestAlert}
+                disabled={testing}
+                className="inline-flex items-center space-x-2 py-2 px-4 bg-white dark:bg-slate-900 border border-amber-500 text-amber-700 dark:text-amber-300 hover:bg-amber-50 font-bold rounded-lg transition text-xs disabled:opacity-50"
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span>{testing ? 'Sending...' : 'Send test alert'}</span>
+              </button>
+              {testMsg && <span className="text-[11px] text-slate-500 dark:text-slate-400">{testMsg}</span>}
+            </div>
           </div>
 
           <div className="pt-2">

@@ -133,3 +133,16 @@ create policy "permit all" on recharges      for all using (true) with check (tr
 create policy "permit all" on meter_readings for all using (true) with check (true);
 create policy "permit all" on settings       for all using (true) with check (true);
 create policy "permit all" on appliance_state_events for all using (true) with check (true);
+
+
+-- 8. EMAIL ALERT SETTINGS (Active alert mechanism)
+-- The dashboard shows the alert status in the app; these columns let the
+-- system also email the caretaker when the projected depletion approaches.
+-- alert_email / alerts_enabled are set from the Settings page.
+-- last_alert_level / last_alert_at are written by the alert check
+-- (app/api/alerts/check) so each episode and level emails only once, and the
+-- alert re-arms after a recharge returns the status to Normal.
+alter table settings add column if not exists alert_email      text;
+alter table settings add column if not exists alerts_enabled   boolean not null default false;
+alter table settings add column if not exists last_alert_level text;
+alter table settings add column if not exists last_alert_at    timestamptz;
