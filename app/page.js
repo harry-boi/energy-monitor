@@ -216,6 +216,37 @@ export default function Dashboard() {
     return () => document.removeEventListener('keydown', onKey);
   }, [alertModal]);
 
+  // Live alert reporting: when the live status changes, tell the server so
+  // it can email the caretaker (once per episode and level; a return to
+  // Normal re-arms). The server holds the marker, so this ref only avoids
+  // repeat posts from this page — the guarantee does not depend on it.
+  const reportedLiveStatusRef = useRef(null);
+  useEffect(() => {
+    if (!data) return;
+    const consumption = estimateLiveConsumption(
+      data.appliances,
+      data.stateEvents,
+      data.todayStartMs,
+      nowMs
+    );
+    const balance = estimateLiveBalance(data.baseBalance, consumption.totalKwh);
+    const duration = estimateDuration(balance, data.averageEnergy);
+    const status = alertStatus(balance, duration, data.settings?.alert_days || 3);
+    if (status === reportedLiveStatusRef.current) return;
+    reportedLiveStatusRef.current = status;
+    fetch('/api/alerts/live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        balanceKwh: balance,
+        durationDays: duration,
+        depletionDate: projectDepletionDate(data.todayStr, duration),
+        averageDailyKwh: data.averageEnergy,
+      }),
+    }).catch(() => {});
+  }, [data, nowMs]);
+
   const formatDateDisplay = (dateStr) => {
     if (!dateStr) return 'Not recorded';
     const d = new Date(dateStr);

@@ -146,3 +146,13 @@ alter table settings add column if not exists alert_email      text;
 alter table settings add column if not exists alerts_enabled   boolean not null default false;
 alter table settings add column if not exists last_alert_level text;
 alter table settings add column if not exists last_alert_at    timestamptz;
+
+
+-- 9. LIVE ALERT MARKER (Dashboard-triggered alert mechanism)
+-- The dashboard computes a live balance from appliance switch history; when
+-- it reports a Low or Critical live status, app/api/alerts/live emails the
+-- caretaker using the same once-per-episode rule as the recorded check.
+-- These columns are that endpoint's marker, kept separate from section 8's
+-- so the live and recorded mechanisms never interfere.
+alter table settings add column if not exists live_last_alert_level text;
+alter table settings add column if not exists live_last_alert_at    timestamptz;
