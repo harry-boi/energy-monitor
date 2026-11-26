@@ -246,6 +246,7 @@ export default function Dashboard() {
     nowMs
   );
   const liveBalance = estimateLiveBalance(data.baseBalance, liveConsumption.totalKwh);
+  const depleted = liveBalance <= 0;
   const liveDuration = estimateDuration(liveBalance, data.averageEnergy);
   const liveStatus = alertStatus(liveBalance, liveDuration, data.settings?.alert_days || 3);
   const liveDepletionDate = projectDepletionDate(data.todayStr, liveDuration);
@@ -303,13 +304,23 @@ export default function Dashboard() {
                 )}
               </div>
               <h2 className="mt-4 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                {alertModal.status === 'Critical' ? 'Energy is nearly out' : 'Energy is running low'}
+                {alertModal.balance <= 0
+                  ? 'Energy has run out'
+                  : alertModal.status === 'Critical'
+                  ? 'Energy is nearly out'
+                  : 'Energy is running low'}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                Goodness Lodge has <strong className="text-slate-900 dark:text-slate-50">{alertModal.balance.toFixed(2)} kWh</strong> left,
-                about <strong className="text-slate-900 dark:text-slate-50">{alertModal.duration.toFixed(1)} days</strong> at the average of{' '}
-                {alertModal.average.toFixed(2)} kWh a day. It is projected to run out on{' '}
-                <strong className="text-slate-900 dark:text-slate-50">{formatDateDisplay(alertModal.depletionDate)}</strong>.
+                {alertModal.balance <= 0 ? (
+                  'Goodness Lodge has used up its prepaid energy. Please recharge as soon as possible so power can be restored.'
+                ) : (
+                  <>
+                    Goodness Lodge has <strong className="text-slate-900 dark:text-slate-50">{alertModal.balance.toFixed(2)} kWh</strong> left,
+                    about <strong className="text-slate-900 dark:text-slate-50">{alertModal.duration.toFixed(1)} days</strong> at the average of{' '}
+                    {alertModal.average.toFixed(2)} kWh a day. It is projected to run out on{' '}
+                    <strong className="text-slate-900 dark:text-slate-50">{formatDateDisplay(alertModal.depletionDate)}</strong>.
+                  </>
+                )}
               </p>
               <div className="mt-6 flex gap-3">
                 <Link
@@ -397,18 +408,25 @@ export default function Dashboard() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>Live balance</span>
+              {depleted && (
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/40 px-2 py-0.5 rounded-full">
+                  Depleted
+                </span>
+              )}
             </span>
-            <BatteryCharging className="h-4 w-4 text-amber-500" />
+            <BatteryCharging className={`h-4 w-4 ${depleted ? 'text-red-500' : 'text-amber-500'}`} />
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-50">
-            {liveBalance.toFixed(3)} <span className="text-lg font-semibold text-slate-600 dark:text-slate-300">kWh</span>
+          <div className={`text-3xl font-extrabold ${depleted ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-50'}`}>
+            {depleted ? '0' : liveBalance.toFixed(3)} <span className={`text-lg font-semibold ${depleted ? 'text-red-500/80 dark:text-red-400/80' : 'text-slate-600 dark:text-slate-300'}`}>kWh</span>
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 space-y-0.5">
             <div>
               {liveConsumption.totalKwh.toFixed(2)} kWh used today so far · burning {data.loadKw.toFixed(2)} kW now
             </div>
-            <div className="font-medium text-slate-600 dark:text-slate-300">
-              {ttd.hoursRemaining !== null
+            <div className={`font-medium ${depleted ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-slate-600 dark:text-slate-300'}`}>
+              {depleted
+                ? 'Energy depleted. Recharge to restore power.'
+                : ttd.hoursRemaining !== null
                 ? `Runs out in about ${
                     ttd.hoursRemaining >= 24
                       ? `${(ttd.hoursRemaining / 24).toFixed(1)} days`
