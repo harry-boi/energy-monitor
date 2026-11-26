@@ -1,6 +1,14 @@
 import './globals.css';
+import { Roboto } from 'next/font/google';
 import Navbar from '../components/Navbar.js';
 import AuthGuard from '../components/AuthGuard.js';
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-roboto',
+  display: 'swap',
+});
 
 export const metadata = {
   title: 'Goodness Lodge — Energy Monitoring & Prediction System',
@@ -10,7 +18,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
-      <body className="min-h-full flex flex-col font-sans">
+      <body className={`min-h-full flex flex-col font-sans ${roboto.variable}`}>
         <AuthGuard>
           <Navbar />
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
