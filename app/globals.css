@@ -50,3 +50,25 @@ body {
     animation: slide-up 0.25s ease-out;
   }
 }
+
+/* Centred modal entrance and exit (dashboard alert summary) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pop-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+.animate-fade-in { animation: fade-in 0.25s ease-out both; }
+.animate-fade-out { animation: fade-out 0.18s ease-in both; }
+.animate-pop-in { animation: pop-in 0.32s cubic-bezier(0.21, 1.02, 0.73, 1) both; }
+.animate-pop-out { animation: pop-out 0.18s ease-in both; }

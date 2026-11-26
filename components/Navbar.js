@@ -3,13 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import {
-  getCurrentUser,
-  signOut,
-  resetToSampleData,
-  clearAllData,
-  getDataMode,
-} from '../lib/dataService.js';
+import { getCurrentUser, signOut } from '../lib/dataService.js';
 import { 
   Zap, 
   LayoutDashboard, 
@@ -19,10 +13,7 @@ import {
   BarChart3, 
   Settings, 
   FileText, 
-  LogOut, 
-  RotateCcw,
-  Trash2,
-  Sparkles,
+  LogOut,
   Menu,
   X
 } from 'lucide-react';
@@ -31,12 +22,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [dataMode, setDataMode] = useState('sample');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setUser(getCurrentUser());
-    setDataMode(getDataMode());
   }, [pathname]);
 
   if (pathname === '/login') {
@@ -44,26 +33,10 @@ export default function Navbar() {
   }
 
   const handleSignOut = async () => {
+    // Re-arm the dashboard alert summary so it greets the next sign-in.
+    try { sessionStorage.removeItem('energyAlertModalShown'); } catch (e) {}
     await signOut();
     router.push('/login');
-  };
-
-  const handleResetSampleData = () => {
-    if (confirm('Load Goodness Lodge sample report scenario (14–20 Oct 2026)?')) {
-      resetToSampleData();
-      window.location.reload();
-    }
-  };
-
-  const handleClearAllData = () => {
-    if (
-      confirm(
-        'Are you sure you want to CLEAR ALL DATA and start completely fresh?\n\nThis will remove all sample appliances, recharges, meter readings, and usage records so you can begin live tracking for your actual lodge.'
-      )
-    ) {
-      clearAllData();
-      window.location.reload();
-    }
   };
 
   const navItems = [
@@ -90,16 +63,6 @@ export default function Navbar() {
                 <Link href="/" className="font-bold text-lg text-white hover:text-amber-400 transition">
                   Goodness Lodge
                 </Link>
-                {/* Data Mode Indicator Badge */}
-                {dataMode === 'clean' ? (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
-                    Live Real Tracking
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">
-                    Sample Report Data
-                  </span>
-                )}
               </div>
               <div className="text-xs text-slate-400">Energy Monitoring & Prediction · Ikot Ekpene</div>
             </div>
@@ -107,28 +70,6 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-2.5">
-            {dataMode === 'sample' ? (
-              <button
-                onClick={handleClearAllData}
-                title="Wipe sample data and start fresh with blank lodge"
-                className="flex items-center space-x-1.5 text-xs text-red-300 hover:text-white bg-red-950/60 hover:bg-red-800 px-2.5 py-1.5 rounded border border-red-700/60 transition"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Start Fresh (Clear Sample Data)</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleResetSampleData}
-                title="Reload the Goodness Lodge report sample data"
-                className="flex items-center space-x-1.5 text-xs text-amber-300 hover:text-white bg-amber-950/60 hover:bg-amber-800 px-2.5 py-1.5 rounded border border-amber-700/60 transition"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Load Sample Report Data</span>
-              </button>
-            )}
-
-            <div className="h-6 w-px bg-slate-700 mx-1"></div>
-
             <div className="text-right">
               <div className="text-xs font-medium text-slate-200">Caretaker</div>
               <div className="text-[11px] text-slate-400">{user?.email || 'caretaker@goodnesslodge.example'}</div>
@@ -202,23 +143,6 @@ export default function Navbar() {
             );
           })}
           <div className="pt-3 border-t border-slate-700 flex flex-col gap-2">
-            {dataMode === 'sample' ? (
-              <button
-                onClick={handleClearAllData}
-                className="flex items-center justify-center space-x-1.5 text-xs text-red-200 bg-red-900/60 py-2 rounded border border-red-700"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Start Fresh (Clear Sample Data)</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleResetSampleData}
-                className="flex items-center justify-center space-x-1.5 text-xs text-amber-200 bg-amber-900/60 py-2 rounded border border-amber-700"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Load Sample Report Data</span>
-              </button>
-            )}
             <button
               onClick={handleSignOut}
               className="flex items-center justify-center space-x-1.5 text-xs bg-red-600 text-white py-2 rounded font-medium"

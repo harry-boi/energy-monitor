@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   getAppliances,
   getUsageRecords,
@@ -35,6 +35,7 @@ import {
   Zap,
   Coins,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import {
   BarChart,
@@ -174,6 +175,47 @@ export default function Dashboard() {
     loadDashboardData();
   }, []);
 
+  // Post-login alert summary: greet the caretaker once per sign-in session
+  // when the energy status is Low or Critical (mirrors the salary project's
+  // overdue summary). Sign-out re-arms it (see Navbar).
+  const [alertModal, setAlertModal] = useState(null);
+  const [alertModalClosing, setAlertModalClosing] = useState(false);
+  const alertModalCheckedRef = useRef(false);
+
+  const closeAlertModal = () => {
+    setAlertModalClosing(true);
+    setTimeout(() => {
+      setAlertModal(null);
+      setAlertModalClosing(false);
+    }, 180);
+  };
+
+  useEffect(() => {
+    if (!data || alertModalCheckedRef.current) return;
+    alertModalCheckedRef.current = true;
+    if (data.status !== 'Low' && data.status !== 'Critical') return;
+    try {
+      if (sessionStorage.getItem('energyAlertModalShown') === '1') return;
+      sessionStorage.setItem('energyAlertModalShown', '1');
+    } catch (e) {}
+    setAlertModal({
+      status: data.status,
+      balance: data.balance,
+      duration: data.duration,
+      depletionDate: data.depletionDate,
+      average: data.averageEnergy,
+    });
+  }, [data]);
+
+  useEffect(() => {
+    if (!alertModal) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') closeAlertModal();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [alertModal]);
+
   const formatDateDisplay = (dateStr) => {
     if (!dateStr) return 'Not recorded';
     const d = new Date(dateStr);
@@ -219,12 +261,82 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Post-login alert summary modal */}
+      {alertModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div
+            className={`absolute inset-0 bg-slate-950/60 backdrop-blur-sm ${alertModalClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+            onClick={closeAlertModal}
+          ></div>
+          <div
+            className={`relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden ${
+              alertModalClosing ? 'animate-pop-out' : 'animate-pop-in'
+            }`}
+          >
+            <div
+              className={`h-1.5 ${
+                alertModal.status === 'Critical'
+                  ? 'bg-gradient-to-r from-red-500 via-rose-500 to-amber-500'
+                  : 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500'
+              }`}
+            ></div>
+            <button
+              type="button"
+              onClick={closeAlertModal}
+              aria-label="Dismiss"
+              className="absolute top-3.5 right-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 transition hover:bg-slate-200 dark:hover:bg-slate-700"
+            >
+              <X className="h-4.5 w-4.5" />
+            </button>
+            <div className="p-6 sm:p-7">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                  alertModal.status === 'Critical'
+                    ? 'bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400'
+                    : 'bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400'
+                }`}
+              >
+                {alertModal.status === 'Critical' ? (
+                  <AlertOctagon className="h-6 w-6" />
+                ) : (
+                  <AlertTriangle className="h-6 w-6" />
+                )}
+              </div>
+              <h2 className="mt-4 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                {alertModal.status === 'Critical' ? 'Energy is nearly out' : 'Energy is running low'}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                Goodness Lodge has <strong className="text-slate-900 dark:text-slate-50">{alertModal.balance.toFixed(2)} kWh</strong> left,
+                about <strong className="text-slate-900 dark:text-slate-50">{alertModal.duration.toFixed(1)} days</strong> at the average of{' '}
+                {alertModal.average.toFixed(2)} kWh a day. It is projected to run out on{' '}
+                <strong className="text-slate-900 dark:text-slate-50">{formatDateDisplay(alertModal.depletionDate)}</strong>.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <Link
+                  href="/recharges"
+                  className="flex-1 rounded-xl bg-amber-500 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-amber-400"
+                >
+                  Add a Recharge
+                </Link>
+                <button
+                  type="button"
+                  onClick={closeAlertModal}
+                  className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Okay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page Title & Scope Alert */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Dashboard</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Goodness Lodge, Ikot Ekpene · Real-time estimated electricity monitoring & prediction
+            Goodness Lodge · Ikot Ekpene
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -264,16 +376,12 @@ export default function Dashboard() {
           <p className="text-xs mt-0.5 font-medium">
             {liveStatus === 'Critical' &&
               (data.balance <= 0
-                ? 'Warning: The energy balance has depleted (0 kWh). Recharge immediately!'
-                : 'Warning: Remaining energy is projected to last 1 day or less. Critical depletion imminent!')}
+                ? 'The energy balance has run out. Recharge immediately.'
+                : 'Less than a day of energy remains. Recharge immediately.')}
             {liveStatus === 'Low' &&
-              `Warning: Energy is projected to last ${data.settings?.alert_days || 3} days or less (${data.duration.toFixed(
-                1
-              )} days remaining). A recharge should be bought soon.`}
+              `About ${data.duration.toFixed(1)} days of energy left. A recharge should be bought soon.`}
             {liveStatus === 'Normal' &&
-              `The energy is expected to last longer than ${data.settings?.alert_days || 3} days (${liveDuration.toFixed(
-                1
-              )} days remaining). No immediate recharge action is required.`}
+              `Energy is expected to last about ${liveDuration.toFixed(1)} days. No recharge is needed yet.`}
           </p>
         </div>
       </div>
@@ -322,7 +430,7 @@ export default function Dashboard() {
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
             {data.isApplianceEstimate
-              ? 'based on appliance estimate (no usage history recorded)'
+              ? 'estimated from appliance ratings'
               : `last ${data.chartData.length} recorded days`}
           </div>
         </div>
@@ -391,9 +499,6 @@ export default function Dashboard() {
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50 uppercase tracking-wider">
               Daily consumption, last 7 days (kWh)
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Historical daily energy estimates computed from caretaker entries
-            </p>
           </div>
           <Link
             href="/analysis"
