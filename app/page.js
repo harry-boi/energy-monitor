@@ -386,7 +386,7 @@ export default function Dashboard() {
           </div>
           <p className="text-xs mt-0.5 font-medium">
             {liveStatus === 'Critical' &&
-              (data.balance <= 0
+              (depleted
                 ? 'The energy balance has run out. Recharge immediately.'
                 : 'Less than a day of energy remains. Recharge immediately.')}
             {liveStatus === 'Low' &&
